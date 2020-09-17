@@ -40,8 +40,7 @@ docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' pos
 - Add to DB_HOST postgres container name or ip
 - Run app image
 ```
-docker run -it -p 80:80 --network paxfuly-net -e DB_HOST=? paxfuly_hw-e DB_PORT=5432 -e DB_DATABASE=? \
--e DB_USERNAME=? -e DB_PASSWORD=? paxfuly_hw
+docker run -it -p 80:80 --network paxfuly-net --env-file=./.env paxfuly_hw
 ```
 _______________________________________________________________
 

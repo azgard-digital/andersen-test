@@ -17,7 +17,10 @@ COPY ./dockers/start.sh  /var/www/
 COPY ./dockers/config/nginx/conf.d/sites.conf /etc/nginx/conf.d/sites.conf
 COPY ./dockers/config/nginx/conf.d/upstream_local.conf /etc/nginx/conf.d/upstream.conf
 COPY ./dockers/config/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY ./dockers/config/nginx/conf.d/site_params /etc/nginx/conf.d/site_params
+
 COPY ./dockers/config/php/www.conf /usr/local/etc/php-fpm.d/www.conf
+
 COPY ./dockers/config/supervisord/supervisord.conf /etc/supervisor/supervisord.conf
 
 RUN docker-php-ext-install pdo_mysql
