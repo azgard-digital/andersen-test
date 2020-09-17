@@ -9,6 +9,8 @@ RUN apt-get update -y \
     && apt-get install -y nginx \
     && apt-get install -y supervisor
 
+RUN  echo "127.0.0.1 nginx-stable" >> /etc/hosts
+
 COPY --chown=www-data:www-data ./  /var/www
 COPY ./dockers/start.sh  /var/www/
 
@@ -65,7 +67,7 @@ ENV DB_DATABASE=db_test
 ENV DB_USERNAME=postgres
 ENV DB_PASSWORD=postgres
 ENV DB_CONNECTION=pgsql
-ENV APP_URL: http://mytest.local
+ENV APP_URL=mytest.local
 ENV APP_ENV=prod
 ENV APP_DEBUG=false
 

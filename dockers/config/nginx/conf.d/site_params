@@ -1,0 +1,3 @@
+listen 80;
+server_name mytest.local www.mytest.local;
+root /var/www/public;

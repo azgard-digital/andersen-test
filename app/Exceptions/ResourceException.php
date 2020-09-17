@@ -2,6 +2,7 @@
 
 namespace App\Exceptions;
 
+use App\Enums\ExceptionErrors;
 use Exception;
 use Illuminate\Support\MessageBag;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -18,11 +19,11 @@ class ResourceException extends HttpException implements MessageBagErrors
     /**
      * Create a new resource exception instance.
      *
-     * @param string                               $message
+     * @param string $message
      * @param \Illuminate\Support\MessageBag|array $errors
-     * @param \Exception                           $previous
-     * @param array                                $headers
-     * @param int                                  $code
+     * @param \Exception $previous
+     * @param array $headers
+     * @param int $code
      *
      * @return void
      */
@@ -34,7 +35,7 @@ class ResourceException extends HttpException implements MessageBagErrors
             $this->errors = is_array($errors) ? new MessageBag($errors) : $errors;
         }
 
-        parent::__construct(422, $message, $previous, $headers, $code);
+        parent::__construct(ExceptionErrors::value('unprocessable'), $message, $previous, $headers, $code);
     }
 
     /**
@@ -42,7 +43,7 @@ class ResourceException extends HttpException implements MessageBagErrors
      *
      * @return \Illuminate\Support\MessageBag
      */
-    public function getErrors()
+    public function getErrors(): \Illuminate\Support\MessageBag
     {
         return $this->errors;
     }
@@ -52,8 +53,8 @@ class ResourceException extends HttpException implements MessageBagErrors
      *
      * @return bool
      */
-    public function hasErrors()
+    public function hasErrors(): bool
     {
-        return ! $this->errors->isEmpty();
+        return !$this->errors->isEmpty();
     }
 }

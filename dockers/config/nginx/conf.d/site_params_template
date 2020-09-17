@@ -1,0 +1,3 @@
+listen       ${APP_PORT};
+server_name ${APP_URL};
+root ${APP_PATH};

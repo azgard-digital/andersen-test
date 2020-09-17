@@ -21,7 +21,21 @@ class CreateTransactionsTable extends Migration
             $table->integer('status')->nullable(false);
             $table->bigInteger('amount')->nullable(false);
             $table->bigInteger('fee')->nullable(false)->default(0);
-            $table->text('details')->nullable(true);
+            $table->json('details')->nullable(true);
+        });
+
+        Schema::table('transactions', function (Blueprint $table) {
+            $table->foreign('user_id')
+                ->references('id')
+                ->on('users')
+                ->onDelete('cascade');
+        });
+
+        Schema::table('transactions', function (Blueprint $table) {
+            $table->foreign('wallet_id')
+                ->references('id')
+                ->on('wallets')
+                ->onDelete('cascade');
         });
     }
 

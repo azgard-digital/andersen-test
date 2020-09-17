@@ -3,9 +3,8 @@ Task Paxful
 - Go to project directory
 ________________________________________________________
 
-Add to hosts
-______________________________________________
-/etc/hosts  127.0.0.1 mytest.local
+- Add mytest.local to hosts file 127.0.0.1 mytest.local
+- Define env variables in .env file
 
 Run in docker compose
 --------------------------------------------
@@ -41,7 +40,7 @@ docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' pos
 - Add to DB_HOST postgres container name or ip
 - Run app image
 ```
-docker run -it -p 80:80 --network paxfuly-net -e DB_HOST=? -e DB_PORT=5432 -e DB_DATABASE=? \
+docker run -it -p 80:80 --network paxfuly-net -e DB_HOST=? paxfuly_hw-e DB_PORT=5432 -e DB_DATABASE=? \
 -e DB_USERNAME=? -e DB_PASSWORD=? paxfuly_hw
 ```
 _______________________________________________________________
@@ -113,11 +112,14 @@ curl --location --request GET 'http://mytest.local/api/transactions' \
 --header 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9teXRlc3QubG9jYWxcL2FwaVwvYXV0aFwvbG9naW4iLCJpYXQiOjE2MDAwNjI0MTYsImV4cCI6MTYwNTI0NjQxNiwibmJmIjoxNjAwMDYyNDE2LCJqdGkiOiJBUUhFMGpjVGg5ME5oWHBBIiwic3ViIjoxLCJwcnYiOiIxZWFmOTI5NDc5M2QxMjVhYTBmZWU0ZWMzYWQ1OWQ5ZDVmYzE2MGMxIn0.1QWOY5vqdE1YotdMU9glQ5WQfSOP2ckEkvqUwSCtgL0' \
 --data-raw ''
 ```
-- Login User
+- Get User Token
 ```
-curl --location --request POST 'http://mytest.local/api/auth/login' \
---header 'Content-Type: application/json' \
+curl --location --request POST 'http://mytest.local/oauth/token' \
 --header 'Cache-Control: no-cache' \
---header 'Accept: application/json; version=v1' \
---data-raw '{"email":"test1@mail.tes", "password":"123456"}'
+--form 'grant_type=password' \
+--form 'client_id=13' \
+--form 'client_secret=YOBVzdHOKbAJAjpdUOzwEpqPDQa7B0XowsbFuyds' \
+--form 'username=test1@mail.tes' \
+--form 'password=123456' \
+--form 'scope='
 ```

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Exceptions;
 
@@ -11,7 +12,6 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
 use ReflectionFunction;
-use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\HttpFoundation\Response as BaseResponse;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -69,7 +69,7 @@ class Handler extends ExceptionHandler
     /**
      * Create a new exception handler instance.
      *
-     * @param  \Illuminate\Contracts\Container\Container  $container
+     * @param \Illuminate\Contracts\Container\Container $container
      * @return void
      */
     public function __construct(Container $container)
@@ -99,7 +99,7 @@ class Handler extends ExceptionHandler
      *
      * @return bool
      */
-    public function shouldReport(Throwable $e)
+    public function shouldReport(Throwable $e): bool
     {
         return true;
     }
@@ -107,12 +107,12 @@ class Handler extends ExceptionHandler
     /**
      * Render an exception into an HTTP response.
      *
-     * @param \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @param Throwable $exception
      *
+     * @return mixed
      * @throws Exception
      *
-     * @return mixed
      */
     public function render($request, Throwable $exception)
     {
@@ -141,7 +141,7 @@ class Handler extends ExceptionHandler
      *
      * @return Response
      */
-    public function handle($exception)
+    public function handle($exception): Response
     {
         // Convert Eloquent's 500 ModelNotFoundException into a 404 NotFoundHttpException
         if ($exception instanceof ModelNotFoundException) {
@@ -149,12 +149,12 @@ class Handler extends ExceptionHandler
         }
 
         foreach ($this->handlers as $hint => $handler) {
-            if (! $exception instanceof $hint) {
+            if (!$exception instanceof $hint) {
                 continue;
             }
 
             if ($response = $handler($exception)) {
-                if (! $response instanceof BaseResponse) {
+                if (!$response instanceof BaseResponse) {
                     $response = new Response($response, $this->getExceptionStatusCode($exception));
                 }
 
@@ -170,11 +170,11 @@ class Handler extends ExceptionHandler
      *
      * @param Throwable $exception
      *
+     * @return Response
      * @throws Throwable
      *
-     * @return Response
      */
-    protected function genericResponse(Throwable $exception)
+    protected function genericResponse(Throwable $exception): Response
     {
         $replacements = $this->prepareReplacements($exception);
 
@@ -198,7 +198,7 @@ class Handler extends ExceptionHandler
      *
      * @return int
      */
-    protected function getStatusCode(Throwable $exception)
+    protected function getStatusCode(Throwable $exception): int
     {
         $statusCode = null;
 
@@ -226,7 +226,7 @@ class Handler extends ExceptionHandler
      *
      * @return array
      */
-    protected function getHeaders(Throwable $exception)
+    protected function getHeaders(Throwable $exception): array
     {
         return $exception instanceof HttpExceptionInterface ? $exception->getHeaders() : [];
     }
@@ -238,11 +238,11 @@ class Handler extends ExceptionHandler
      *
      * @return array
      */
-    protected function prepareReplacements(Throwable $exception)
+    protected function prepareReplacements(Throwable $exception): array
     {
         $statusCode = $this->getStatusCode($exception);
 
-        if (! $message = $exception->getMessage()) {
+        if (!$message = $exception->getMessage()) {
             $message = sprintf('%d %s', $statusCode, Response::$statusTexts[$statusCode]);
         }
 
@@ -273,7 +273,7 @@ class Handler extends ExceptionHandler
             ];
 
             // Attach trace of previous exception, if exists
-            if (! is_null($exception->getPrevious())) {
+            if (!is_null($exception->getPrevious())) {
                 $currentTrace = $replacements[':debug']['trace'];
 
                 $replacements[':debug']['trace'] = [
@@ -305,7 +305,7 @@ class Handler extends ExceptionHandler
      *
      * @return array
      */
-    protected function recursivelyRemoveEmptyReplacements(array $input)
+    protected function recursivelyRemoveEmptyReplacements(array $input): array
     {
         foreach ($input as &$value) {
             if (is_array($value)) {
@@ -315,7 +315,7 @@ class Handler extends ExceptionHandler
 
         return array_filter($input, function ($value) {
             if (is_string($value)) {
-                return ! Str::startsWith($value, ':');
+                return !Str::startsWith($value, ':');
             }
 
             return true;
@@ -327,7 +327,7 @@ class Handler extends ExceptionHandler
      *
      * @return array
      */
-    protected function newResponseArray()
+    protected function newResponseArray(): array
     {
         return $this->format;
     }
@@ -336,11 +336,11 @@ class Handler extends ExceptionHandler
      * Get the exception status code.
      *
      * @param Exception $exception
-     * @param int        $defaultStatusCode
+     * @param int $defaultStatusCode
      *
      * @return int
      */
-    protected function getExceptionStatusCode(Exception $exception, $defaultStatusCode = 500)
+    protected function getExceptionStatusCode(Exception $exception, $defaultStatusCode = 500): int
     {
         return ($exception instanceof HttpExceptionInterface) ? $exception->getStatusCode() : $defaultStatusCode;
     }
@@ -350,7 +350,7 @@ class Handler extends ExceptionHandler
      *
      * @return bool
      */
-    protected function runningInDebugMode()
+    protected function runningInDebugMode(): bool
     {
         return $this->debug;
     }
@@ -362,7 +362,7 @@ class Handler extends ExceptionHandler
      *
      * @return string
      */
-    protected function handlerHint(callable $callback)
+    protected function handlerHint(callable $callback): string
     {
         $reflection = new ReflectionFunction($callback);
 
@@ -376,7 +376,7 @@ class Handler extends ExceptionHandler
      *
      * @return array
      */
-    public function getHandlers()
+    public function getHandlers(): array
     {
         return $this->handlers;
     }
