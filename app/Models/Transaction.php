@@ -25,7 +25,8 @@ class Transaction extends Model
         'wallet_id',
         'status',
         'amount',
-        'fee'
+        'fee',
+        'details'
     ];
 
     /**
