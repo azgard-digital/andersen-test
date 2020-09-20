@@ -5,111 +5,98 @@ namespace App\Services;
 
 use App\DTO\WalletDTO;
 use App\Exceptions\ResourceException;
-use App\Interfaces\ICalculator;
+use App\Helpers\Calculator;
 use App\Interfaces\IWalletService;
 use App\Models\Wallet;
 use App\Repository\WalletRepository;
 use Illuminate\Support\Collection;
-use Illuminate\Http\Exceptions\ThrottleRequestsException;
 
 class WalletService implements IWalletService
 {
-    const WALLETS_LIMIT = 9;
-    const DEFAULT_BALANCE = 100000000;
+    private const WALLETS_LIMIT = 9;
+    private const DEFAULT_BALANCE = 100000000;
 
-    private $wallet;
-
-    private $btcConverterService;
-
-    private $usdConverterService;
-
+    private $currencyService;
     private $walletRepository;
 
     public function __construct(
-        Wallet $wallet,
-        BtcConverterService $btcConverterService,
-        UsdConverterService $usdConverterService,
+        CurrencyService $currencyService,
         WalletRepository $walletRepository
     ) {
-        $this->wallet = $wallet;
-        $this->btcConverterService = $btcConverterService;
-        $this->usdConverterService = $usdConverterService;
+        $this->currencyService = $currencyService;
         $this->walletRepository = $walletRepository;
     }
 
     public function isLimited(int $userId): bool
     {
-        if ($this->getAmount($userId) < self::WALLETS_LIMIT) {
-            return true;
-        }
-
-        return false;
+        return $this->walletRepository->getWalletsCount($userId) < self::WALLETS_LIMIT;
     }
 
-    protected function getAmount(int $userId): int
+    protected function createWalletAddress(string $prefix): string
     {
-        return (int)$this->wallet->query()->where('user_id', $userId)->count();
+        return md5(uniqid($prefix, true));
+    }
+
+    protected function createUserWallet(int $userId, string $address): bool
+    {
+        $model = new Wallet();
+
+        $wallet = $model->fill([
+            'balance' => self::DEFAULT_BALANCE,
+            'user_id' => $userId,
+            'address' => $address
+        ]);
+
+        return $wallet->save();
     }
 
     public function create(int $userId): WalletDTO
     {
-        if ($this->isLimited($userId)) {
-            new ThrottleRequestsException('Too many wallets');
+        $address = $this->createWalletAddress((string)$userId);
+
+        if (!$this->createUserWallet($userId, $address)) {
+            throw new ResourceException('Wallet has not been created');
         }
-
-        $address = md5(uniqid((string)$userId));
-
-        $this->wallet->fill([
-            'balance' => self::DEFAULT_BALANCE,
-            'user_id' => $userId,
-            'address' => $address
-        ])->save();
 
         return new WalletDTO(
             $address,
-            $this->btcConverterService->convert(self::DEFAULT_BALANCE),
-            $this->usdConverterService->convert(self::DEFAULT_BALANCE)
+            $this->currencyService->convertToBtc(self::DEFAULT_BALANCE),
+            $this->currencyService->convertToUsd(self::DEFAULT_BALANCE)
         );
     }
 
     public function getWalletByAddress(string $address, int $userId): WalletDTO
     {
-        $wallet = $this->wallet->query()
-            ->select('balance')
-            ->where('user_id', $userId)
-            ->where('address', $address)
-            ->first();
+        $wallet = $this->walletRepository->getUserWalletByAddress($address, $userId);
 
         if (!$wallet) {
-            throw new ResourceException('Wallet has not been found!');
+            throw new ResourceException('Wallet has not been found');
         }
 
         return new WalletDTO(
             $address,
-            $this->btcConverterService->convert($wallet->balance),
-            $this->usdConverterService->convert($wallet->balance)
+            $this->currencyService->convertToBtc($wallet->balance),
+            $this->currencyService->convertToUsd($wallet->balance)
         );
     }
 
     public function isWalletExist(int $userId, string $address): bool
     {
-        return $this->wallet->query()
-            ->where('user_id', $userId)
-            ->where('address', $address)
-            ->exists();
+        return $this->walletRepository->isUserWalletExist($userId, $address);
     }
 
-    public function processTransaction(string $from, string $to, ICalculator $calculate): bool
+    public function processTransaction(string $from, string $to, Calculator $calculate): bool
     {
         return $this->walletRepository->process($from, $to, $calculate);
     }
 
-    public function getWalletIdByAddress(string $address): ?int
+    public function getWalletIdByAddress(string $address, int $userId): ?int
     {
-        $wallet = $this->wallet->query()
-            ->select(['id'])
-            ->where('address', $address)
-            ->first();
+        $wallet = $this->walletRepository->getUserWalletByAddress($address, $userId);
+
+        if (!$wallet) {
+            return null;
+        }
 
         return $wallet->getAttribute('id');
     }

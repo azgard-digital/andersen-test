@@ -1,8 +1,9 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Exceptions;
 
-use App\Enums\ExceptionErrors;
+use App\Enums\HttpStatuses;
 use Exception;
 use Illuminate\Support\MessageBag;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -35,7 +36,7 @@ class ResourceException extends HttpException implements MessageBagErrors
             $this->errors = is_array($errors) ? new MessageBag($errors) : $errors;
         }
 
-        parent::__construct(ExceptionErrors::value('unprocessable'), $message, $previous, $headers, $code);
+        parent::__construct(HttpStatuses::value('unprocessable'), $message, $previous, $headers, $code);
     }
 
     /**

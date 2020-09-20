@@ -6,24 +6,45 @@ namespace App\Services;
 use App\DTO\TransactionDTO;
 use App\Enums\TransactionStatus;
 use App\Exceptions\ResourceException;
-use App\Factories\TransactionCalculatorFactory;
+use App\Helpers\Calculator;
 use App\Interfaces\ITransactionService;
 use App\Interfaces\IWalletService;
 use App\Models\Transaction;
+use App\Repository\TransactionRepository;
 use Illuminate\Database\Eloquent\Collection;
 
 class TransactionService implements ITransactionService
 {
+    private const COMPANY_FEE = 1.5;
+
     private $walletService;
+    private $transactionRepository;
 
-    private $transaction;
-
-    public function __construct(
-        IWalletService $walletService,
-        Transaction $transaction
-    ) {
+    public function __construct(IWalletService $walletService, TransactionRepository $transactionRepository)
+    {
         $this->walletService = $walletService;
-        $this->transaction = $transaction;
+        $this->transactionRepository = $transactionRepository;
+    }
+
+    protected function calculateFee(int $amount): int
+    {
+        return (int)round(($amount * self::COMPANY_FEE) / 100);
+    }
+
+    protected function createUserTransaction(TransactionDTO $dto): bool
+    {
+        $model = new Transaction();
+
+        $transaction = $model->fill([
+            'user_id' => $dto->getUserId(),
+            'wallet_id' => $dto->getWalletId(),
+            'amount' => $dto->getAmount(),
+            'fee' => $dto->getFee(),
+            'status' => $dto->getResult(),
+            'details' => ['from' => $dto->getFrom(), 'to' => $dto->getTo()]
+        ]);
+
+        return $transaction->save();
     }
 
     public function create(int $userId, string $from, string $to, int $amount): TransactionDTO
@@ -32,35 +53,36 @@ class TransactionService implements ITransactionService
             throw new ResourceException('Invalid user wallet');
         }
 
-        $factory = new TransactionCalculatorFactory($amount);
+        $fee = 0;
 
-        if ($this->walletService->isWalletExist($userId, $to)) {
-            $calculate = $factory->getFreeCalculator();
-        } else {
-            $calculate = $factory->getPaidCalculator();
+        if (!$this->walletService->isWalletExist($userId, $to)) {
+            $fee = $this->calculateFee($amount);
         }
 
-        $result = $this->walletService->processTransaction($from, $to, $calculate);
-        $walletId = $this->walletService->getWalletIdByAddress($from);
+        $calculator = new Calculator($amount, $fee);
+        $result = $this->walletService->processTransaction($from, $to, $calculator);
+        $walletId = $this->walletService->getWalletIdByAddress($from, $userId);
         $status = ($result) ? TransactionStatus::value('success') : TransactionStatus::value('fail');
 
-        $this->transaction->fill([
-            'user_id' => $userId,
-            'wallet_id' => $walletId,
-            'amount' => $amount,
-            'fee' => $calculate->getFee(),
-            'status' => $status,
-            'details' => ['from' => $from, 'to' => $to]
-        ])->save();
+        $dto = new TransactionDTO(
+            $from,
+            $to,
+            $amount,
+            $fee,
+            $status,
+            $walletId,
+            $userId
+        );
 
-        return new TransactionDTO($from, $to, $amount, $calculate->getFee(), $status);
+        if (!$this->createUserTransaction($dto)) {
+            throw new ResourceException('Transaction log has not been created');
+        }
+
+        return $dto;
     }
 
     public function getUserTransactions(int $userId): Collection
     {
-        return $this->transaction->query()
-            ->where('user_id', $userId)
-            ->with('wallet')
-            ->get();
+        return $this->transactionRepository->getUserTransactions($userId);
     }
 }

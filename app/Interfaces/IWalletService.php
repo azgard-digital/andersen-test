@@ -4,6 +4,7 @@
 namespace App\Interfaces;
 
 use App\DTO\WalletDTO;
+use App\Helpers\Calculator;
 use Illuminate\Support\Collection;
 
 interface IWalletService
@@ -37,16 +38,17 @@ interface IWalletService
     /**
      * @param string $from
      * @param string $to
-     * @param ICalculator $calculate
+     * @param Calculator $calculate
      * @return bool
      */
-    public function processTransaction(string $from, string $to, ICalculator $calculate): bool;
+    public function processTransaction(string $from, string $to, Calculator $calculate): bool;
 
     /**
      * @param string $address
+     * @param int $userId
      * @return int|null
      */
-    public function getWalletIdByAddress(string $address): ?int;
+    public function getWalletIdByAddress(string $address, int $userId): ?int;
 
     /**
      * @param string $address

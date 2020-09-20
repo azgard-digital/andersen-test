@@ -3,8 +3,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Exceptions\ResourceException;
 use App\Http\Controllers\Controller;
-use App\Http\FormRequests\TransactionCreateRequest;
+use App\Http\Requests\TransactionCreateRequest;
 use App\Interfaces\ITransactionService;
 use App\Resources\TransactionResource;
 use App\Resources\TransactionsResource;

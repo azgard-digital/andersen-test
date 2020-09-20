@@ -3,29 +3,23 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\FormRequests\RegisterRequest;
+use App\Http\Requests\RegisterRequest;
 use App\Http\Controllers\Controller;
 use App\Interfaces\IUserService;
 use Laravel\Passport\PersonalAccessTokenResult;
 
 class UsersController extends Controller
 {
-    private $user;
+    private $userService;
 
-    public function __construct(IUserService $user)
+    public function __construct(IUserService $userService)
     {
-        $this->user = $user;
+        $this->userService = $userService;
     }
 
-    /**
-     * Create a new personal access token for the user.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return PersonalAccessTokenResult
-     */
     public function store(RegisterRequest $request): PersonalAccessTokenResult
     {
-        $user = $this->user->create(
+        $user = $this->userService->create(
             $request->get('email'),
             $request->get('name'),
             $request->get('password')

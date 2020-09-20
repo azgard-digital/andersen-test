@@ -30,13 +30,32 @@ final class TransactionDTO
      */
     private $result;
 
-    public function __construct(string $from, string $to, int $amount, int $fee, int $result)
-    {
+    /**
+     * @var int
+     */
+    private $walletId;
+
+    /**
+     * @var int
+     */
+    private $userId;
+
+    public function __construct(
+        string $from,
+        string $to,
+        int $amount,
+        int $fee,
+        int $result,
+        int $walletId,
+        int $userId
+    ) {
         $this->from = $from;
         $this->to = $to;
         $this->amount = $amount;
         $this->fee = $fee;
         $this->result = $result;
+        $this->walletId = $walletId;
+        $this->userId = $userId;
     }
 
     /**
@@ -77,6 +96,22 @@ final class TransactionDTO
     public function getResult(): int
     {
         return $this->result;
+    }
+
+    /**
+     * @return int
+     */
+    public function getWalletId(): int
+    {
+        return $this->walletId;
+    }
+
+    /**
+     * @return int
+     */
+    public function getUserId(): int
+    {
+        return $this->userId;
     }
 
 }

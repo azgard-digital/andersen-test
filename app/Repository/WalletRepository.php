@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Exceptions\ResourceException;
-use App\Interfaces\ICalculator;
+use App\Helpers\Calculator;
 use App\Models\Wallet;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -12,18 +12,11 @@ use Illuminate\Support\Facades\Log;
 
 class WalletRepository
 {
-    private $model;
-
-    public function __construct(Wallet $model)
-    {
-        $this->model = $model;
-    }
-
-    public function process(string $from, string $to, ICalculator $calculate): bool
+    public function process(string $from, string $to, Calculator $calculate): bool
     {
         try {
             DB::beginTransaction();
-            $walletFrom = $this->model->query()
+            $walletFrom = Wallet::query()
                 ->where('address', $from)
                 ->lockForUpdate()
                 ->first();
@@ -34,7 +27,7 @@ class WalletRepository
                 throw new ResourceException('Not enough money for transaction');
             }
 
-            $walletTo = $this->model->query()
+            $walletTo = Wallet::query()
                 ->where('address', $to)
                 ->lockForUpdate()
                 ->first();
@@ -46,15 +39,16 @@ class WalletRepository
 
             $walletFrom->save();
             $walletTo->save();
+
             DB::commit();
+
             return true;
+        } catch (ResourceException $e) {
+            DB::rollBack();
+            throw new ResourceException($e->getMessage());
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error($e->getMessage());
-
-            if ($e instanceof ResourceException) {
-                throw new ResourceException($e->getMessage());
-            }
         }
 
         return false;
@@ -67,5 +61,32 @@ class WalletRepository
             ->where('wallets.address', $address)
             ->select(['transactions.*'])
             ->get();
+    }
+
+    public function getWalletsCount(int $userId): int
+    {
+        return Wallet::query()->where('user_id', $userId)->count();
+    }
+
+    public function getUserWalletByAddress(string $address, int $userId): ?Wallet
+    {
+        $wallet = Wallet::query()
+            ->where('user_id', $userId)
+            ->where('address', $address)
+            ->first();
+
+        if (($wallet instanceof Wallet) === false) {
+            return null;
+        }
+
+        return $wallet;
+    }
+
+    public function isUserWalletExist(int $userId, string $address): bool
+    {
+        return Wallet::query()
+            ->where('user_id', $userId)
+            ->where('address', $address)
+            ->exists();
     }
 }

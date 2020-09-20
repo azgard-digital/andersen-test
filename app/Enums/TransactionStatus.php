@@ -5,8 +5,8 @@ namespace App\Enums;
 
 class TransactionStatus extends Enum
 {
-    const SUCCESS = 1;
-    const FAIL = 2;
+    private const SUCCESS = 1;
+    private const FAIL = 2;
 
     public static function titles(): array
     {

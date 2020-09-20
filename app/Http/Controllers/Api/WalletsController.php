@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Exceptions\WalletsLimitException;
 use App\Http\Controllers\Controller;
 use App\Interfaces\IWalletService;
 use App\Resources\TransactionsResource;
@@ -13,18 +14,24 @@ use Illuminate\Http\Resources\Json\ResourceCollection;
 
 class WalletsController extends Controller
 {
-    private $wallet;
+    private $walletService;
 
-    public function __construct(IWalletService $wallet)
+    public function __construct(IWalletService $walletService)
     {
-        $this->wallet = $wallet;
+        $this->walletService = $walletService;
     }
 
     public function store(Request $request): JsonResource
     {
+        $userId = (int)$request->user()->id;
+
+        if ($this->walletService->isLimited($userId)) {
+            new WalletsLimitException('Too many wallets');
+        }
+
         return new WalletResource(
-            $this->wallet->create(
-                $request->user()->id
+            $this->walletService->create(
+                $userId
             )
         );
     }
@@ -32,7 +39,7 @@ class WalletsController extends Controller
     public function show(string $address, Request $request): JsonResource
     {
         return new WalletResource(
-            $this->wallet->getWalletByAddress(
+            $this->walletService->getWalletByAddress(
                 $address,
                 $request->user()->id
             )
@@ -42,7 +49,7 @@ class WalletsController extends Controller
     public function transactions(string $address): ResourceCollection
     {
         return new TransactionsResource(
-            $this->wallet->getTransactionsByAddress(
+            $this->walletService->getTransactionsByAddress(
                 $address
             )
         );
