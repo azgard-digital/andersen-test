@@ -28,9 +28,4 @@ final class Calculator
     {
         return $this->fee + $this->amount;
     }
-
-    public function getFee(): int
-    {
-        return $this->fee;
-    }
 }

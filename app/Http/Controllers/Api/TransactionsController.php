@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
-use App\Exceptions\ResourceException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\TransactionCreateRequest;
 use App\Interfaces\ITransactionService;

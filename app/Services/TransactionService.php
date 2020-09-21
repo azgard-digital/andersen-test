@@ -12,6 +12,8 @@ use App\Interfaces\IWalletService;
 use App\Models\Transaction;
 use App\Repository\TransactionRepository;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class TransactionService implements ITransactionService
 {
@@ -47,6 +49,27 @@ class TransactionService implements ITransactionService
         return $transaction->save();
     }
 
+    protected function processTransaction(string $from, string $to, Calculator $calculate): bool
+    {
+        try {
+
+            DB::beginTransaction();
+            $this->walletService->takeTransaction($from, $calculate);
+            $this->walletService->putTransaction($to, $calculate);
+            DB::commit();
+
+            return true;
+        } catch (ResourceException $e) {
+            DB::rollBack();
+            throw new ResourceException($e->getMessage());
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage());
+        }
+
+        return false;
+    }
+
     public function create(int $userId, string $from, string $to, int $amount): TransactionDTO
     {
         if (!$this->walletService->isWalletExist($userId, $from)) {
@@ -60,7 +83,7 @@ class TransactionService implements ITransactionService
         }
 
         $calculator = new Calculator($amount, $fee);
-        $result = $this->walletService->processTransaction($from, $to, $calculator);
+        $result = $this->processTransaction($from, $to, $calculator);
         $walletId = $this->walletService->getWalletIdByAddress($from, $userId);
         $status = ($result) ? TransactionStatus::value('success') : TransactionStatus::value('fail');
 

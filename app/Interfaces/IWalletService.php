@@ -36,12 +36,16 @@ interface IWalletService
     public function isWalletExist(int $userId, string $address): bool;
 
     /**
-     * @param string $from
      * @param string $to
      * @param Calculator $calculate
-     * @return bool
      */
-    public function processTransaction(string $from, string $to, Calculator $calculate): bool;
+    public function putTransaction(string $to, Calculator $calculate): void;
+
+    /**
+     * @param string $from
+     * @param Calculator $calculate
+     */
+    public function takeTransaction(string $from, Calculator $calculate): void;
 
     /**
      * @param string $address

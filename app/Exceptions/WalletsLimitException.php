@@ -6,11 +6,27 @@ namespace App\Exceptions;
 use Exception;
 use App\Enums\HttpStatuses;
 use Illuminate\Support\MessageBag;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
-class WalletsLimitException extends ResourceException
+class WalletsLimitException extends HttpException implements MessageBagErrors
 {
     /**
-     * @inheritDoc
+     * MessageBag errors.
+     *
+     * @var \Illuminate\Support\MessageBag
+     */
+    protected $errors;
+
+    /**
+     * Create a new resource exception instance.
+     *
+     * @param string $message
+     * @param \Illuminate\Support\MessageBag|array $errors
+     * @param \Exception $previous
+     * @param array $headers
+     * @param int $code
+     *
+     * @return void
      */
     public function __construct($message = null, $errors = null, Exception $previous = null, $headers = [], $code = 0)
     {
@@ -21,5 +37,25 @@ class WalletsLimitException extends ResourceException
         }
 
         parent::__construct(HttpStatuses::value('forbidden'), $message, $previous, $headers, $code);
+    }
+
+    /**
+     * Get the errors message bag.
+     *
+     * @return \Illuminate\Support\MessageBag
+     */
+    public function getErrors(): \Illuminate\Support\MessageBag
+    {
+        return $this->errors;
+    }
+
+    /**
+     * Determine if message bag has any errors.
+     *
+     * @return bool
+     */
+    public function hasErrors(): bool
+    {
+        return !$this->errors->isEmpty();
     }
 }

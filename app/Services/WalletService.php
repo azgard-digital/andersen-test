@@ -29,7 +29,7 @@ class WalletService implements IWalletService
 
     public function isLimited(int $userId): bool
     {
-        return $this->walletRepository->getWalletsCount($userId) < self::WALLETS_LIMIT;
+        return ($this->walletRepository->getWalletsCount($userId) >= self::WALLETS_LIMIT);
     }
 
     protected function createWalletAddress(string $prefix): string
@@ -85,9 +85,14 @@ class WalletService implements IWalletService
         return $this->walletRepository->isUserWalletExist($userId, $address);
     }
 
-    public function processTransaction(string $from, string $to, Calculator $calculate): bool
+    public function putTransaction(string $to, Calculator $calculate): void
     {
-        return $this->walletRepository->process($from, $to, $calculate);
+        $this->walletRepository->putTransaction($to, $calculate);
+    }
+
+    public function takeTransaction(string $from, Calculator $calculate): void
+    {
+        $this->walletRepository->takeTransaction($from, $calculate);
     }
 
     public function getWalletIdByAddress(string $address, int $userId): ?int

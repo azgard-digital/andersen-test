@@ -8,14 +8,12 @@ use App\Helpers\Calculator;
 use App\Models\Wallet;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class WalletRepository
 {
-    public function process(string $from, string $to, Calculator $calculate): bool
+    public function takeTransaction(string $from, Calculator $calculate): void
     {
-        try {
-            DB::beginTransaction();
+        DB::transaction(function() use ($from, $calculate) {
             $walletFrom = Wallet::query()
                 ->where('address', $from)
                 ->lockForUpdate()
@@ -27,6 +25,14 @@ class WalletRepository
                 throw new ResourceException('Not enough money for transaction');
             }
 
+            $walletFrom->balance = $calculate->calculateFromBalance($walletFromBalance);
+            $walletFrom->save();
+        });
+    }
+
+    public function putTransaction(string $to, Calculator $calculate): void
+    {
+        DB::transaction(function() use ($to, $calculate) {
             $walletTo = Wallet::query()
                 ->where('address', $to)
                 ->lockForUpdate()
@@ -34,24 +40,9 @@ class WalletRepository
 
             $walletToBalance = $walletTo->balance;
 
-            $walletFrom->balance = $calculate->calculateFromBalance($walletFromBalance);
             $walletTo->balance = $calculate->calculateToBalance($walletToBalance);
-
-            $walletFrom->save();
             $walletTo->save();
-
-            DB::commit();
-
-            return true;
-        } catch (ResourceException $e) {
-            DB::rollBack();
-            throw new ResourceException($e->getMessage());
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error($e->getMessage());
-        }
-
-        return false;
+        });
     }
 
     public function getTransactionsByAddress(string $address): Collection
@@ -59,8 +50,14 @@ class WalletRepository
         return DB::table('wallets')
             ->join('transactions', 'wallets.id', '=', 'transactions.wallet_id')
             ->where('wallets.address', $address)
-            ->select(['transactions.*'])
-            ->get();
+            ->get([
+                'transactions.id',
+                'transactions.created_at',
+                'transactions.updated_at',
+                'transactions.status',
+                'transactions.amount',
+                'transactions.fee'
+            ]);
     }
 
     public function getWalletsCount(int $userId): int

@@ -26,7 +26,7 @@ class WalletsController extends Controller
         $userId = (int)$request->user()->id;
 
         if ($this->walletService->isLimited($userId)) {
-            new WalletsLimitException('Too many wallets');
+            throw new WalletsLimitException('Too many wallets');
         }
 
         return new WalletResource(

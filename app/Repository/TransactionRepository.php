@@ -1,8 +1,7 @@
 <?php
-
+declare(strict_types=1);
 
 namespace App\Repository;
-
 
 use App\Models\Transaction;
 use Illuminate\Database\Eloquent\Collection;
@@ -13,7 +12,14 @@ class TransactionRepository
     {
         return Transaction::query()
             ->where('user_id', $userId)
-            ->with('wallet')
-            ->get();
+            ->get([
+                'id',
+                'created_at',
+                'updated_at',
+                'status',
+                'amount',
+                'fee',
+                'details'
+            ]);
     }
 }
