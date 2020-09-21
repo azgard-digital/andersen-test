@@ -1,0 +1,3 @@
+listen       ${NGINX_PORT};
+server_name ${NGINX_HOST};
+root ${NGINX_ROOT};
