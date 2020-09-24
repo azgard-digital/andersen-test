@@ -15,10 +15,9 @@ class UserService implements IUserService
 
         $model->fill([
             'email' => $email,
-            'name' => $name
+            'name' => $name,
+            'password' => bcrypt($password)
         ]);
-
-        $model->password = bcrypt($password);
 
         if (!$model->save()) {
             throw new ResourceException('User has not been created');
