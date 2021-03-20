@@ -3,10 +3,10 @@ Task
 - Go to project directory
 ________________________________________________________
 
-- Add mytest.local to hosts file 127.0.0.1 mytest.local
+- In hosts file add 127.0.0.1 mytest.local
 - Define env variables in .env file
 
-Run in docker compose
+Run via docker compose
 --------------------------------------------
 ```
 docker-compose up --build
@@ -20,7 +20,7 @@ Run project in container
 docker network create paxfuly-net
 ```
 
-- Run postgres image
+- Start postgres image
 ```
 docker run --name postgres --network paxfuly-net -p 5432:5432 \
  -e POSTGRES_DB=db_test -e POSTGRES_USER=postgres POSTGRES_PASSWORD=postgres -d postgres:12.4
@@ -32,13 +32,13 @@ docker run --name postgres --network paxfuly-net -p 5432:5432 \
 docker build -t paxfuly_hw -f dockers/Dockerfile .
 ```
 
-- Get postgres container ip for DB_HOST env
+- Get postgres container ip for DB_HOST env or use localhost
 ```
 docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' postgres
 ```
 
 - Add to DB_HOST postgres container name or ip
-- Run app image
+- Start app image
 ```
 docker run -it -p 80:80 --network paxfuly-net --env-file=./.env paxfuly_hw
 ```

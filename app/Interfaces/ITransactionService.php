@@ -4,22 +4,23 @@ declare(strict_types=1);
 namespace App\Interfaces;
 
 use App\DTO\TransactionDTO;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 
 interface ITransactionService
 {
     /**
-     * @param int $userId
+     * @param User $user
      * @param string $from
      * @param string $to
      * @param int $amount
      * @return TransactionDTO
      */
-    public function create(int $userId, string $from, string $to, int $amount): TransactionDTO;
+    public function create(User $user, string $from, string $to, int $amount): TransactionDTO;
 
     /**
-     * @param int $userId
+     * @param User $user
      * @return Collection
      */
-    public function getUserTransactions(int $userId): Collection;
+    public function getUserTransactions(User $user): Collection;
 }

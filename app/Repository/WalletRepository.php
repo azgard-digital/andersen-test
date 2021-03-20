@@ -4,16 +4,17 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Exceptions\ResourceException;
-use App\Helpers\Calculator;
 use App\Models\Wallet;
+use App\Services\Payment;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class WalletRepository
 {
-    public function takeTransaction(string $from, Calculator $calculate): void
+    public function takeTransaction(string $from, Payment $payment): void
     {
-        DB::transaction(function() use ($from, $calculate) {
+        try {
+            DB::beginTransaction();
             $walletFrom = Wallet::query()
                 ->where('address', $from)
                 ->lockForUpdate()
@@ -21,18 +22,27 @@ class WalletRepository
 
             $walletFromBalance = $walletFrom->balance;
 
-            if ($walletFromBalance < $calculate->calculateAmountWithFee()) {
+            if ($walletFromBalance < $payment->calculateAmountWithFee()) {
                 throw new ResourceException('Not enough money for transaction');
             }
 
-            $walletFrom->balance = $calculate->calculateFromBalance($walletFromBalance);
+            $walletFrom->balance = $payment->calculateFromBalance($walletFromBalance);
             $walletFrom->save();
-        });
+            DB::commit();
+        } catch (ResourceException $e) {
+            DB::rollBack();
+            Log::error($e->getMessage());
+            throw $e;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage());
+            throw new ResourceException('Reward has not been charged');
+        }
     }
 
-    public function putTransaction(string $to, Calculator $calculate): void
+    public function putTransaction(string $to, Payment $payment): void
     {
-        DB::transaction(function() use ($to, $calculate) {
+        DB::transaction(function () use ($to, $payment) {
             $walletTo = Wallet::query()
                 ->where('address', $to)
                 ->lockForUpdate()
@@ -40,7 +50,7 @@ class WalletRepository
 
             $walletToBalance = $walletTo->balance;
 
-            $walletTo->balance = $calculate->calculateToBalance($walletToBalance);
+            $walletTo->balance = $payment->calculateToBalance($walletToBalance);
             $walletTo->save();
         });
     }
@@ -67,16 +77,10 @@ class WalletRepository
 
     public function getUserWalletByAddress(string $address, int $userId): ?Wallet
     {
-        $wallet = Wallet::query()
+        return Wallet::query()
             ->where('user_id', $userId)
             ->where('address', $address)
             ->first();
-
-        if (($wallet instanceof Wallet) === false) {
-            return null;
-        }
-
-        return $wallet;
     }
 
     public function isUserWalletExist(int $userId, string $address): bool

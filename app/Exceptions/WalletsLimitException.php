@@ -12,20 +12,17 @@ class WalletsLimitException extends HttpException implements MessageBagErrors
 {
     /**
      * MessageBag errors.
-     *
      * @var \Illuminate\Support\MessageBag
      */
     protected $errors;
 
     /**
      * Create a new resource exception instance.
-     *
-     * @param string $message
-     * @param \Illuminate\Support\MessageBag|array $errors
-     * @param \Exception $previous
-     * @param array $headers
-     * @param int $code
-     *
+     * @param  string  $message
+     * @param  \Illuminate\Support\MessageBag|array  $errors
+     * @param  \Exception  $previous
+     * @param  array  $headers
+     * @param  int  $code
      * @return void
      */
     public function __construct($message = null, $errors = null, Exception $previous = null, $headers = [], $code = 0)
@@ -41,7 +38,6 @@ class WalletsLimitException extends HttpException implements MessageBagErrors
 
     /**
      * Get the errors message bag.
-     *
      * @return \Illuminate\Support\MessageBag
      */
     public function getErrors(): \Illuminate\Support\MessageBag
@@ -51,7 +47,6 @@ class WalletsLimitException extends HttpException implements MessageBagErrors
 
     /**
      * Determine if message bag has any errors.
-     *
      * @return bool
      */
     public function hasErrors(): bool

@@ -18,26 +18,14 @@ class User extends Authenticatable
 {
     use HasApiTokens, Notifiable;
 
-    /**
-     * @inheritdoc
-     */
     protected $fillable = [
         'name',
         'email',
         'password'
     ];
-
-    /**
-     * @inheritdoc
-     */
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
-
-    /**
-     * @inheritdoc
-     */
-    protected $hidden = [
-        'password',
-    ];
+    protected $guarded = ['id', 'password'];
+    protected $hidden = ['password'];
 }

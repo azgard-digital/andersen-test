@@ -10,6 +10,7 @@ use App\Helpers\Calculator;
 use App\Interfaces\ITransactionService;
 use App\Interfaces\IWalletService;
 use App\Models\Transaction;
+use App\Models\User;
 use App\Repository\TransactionRepository;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -21,16 +22,15 @@ class TransactionService implements ITransactionService
 
     private $walletService;
     private $transactionRepository;
+    private $payment;
 
-    public function __construct(IWalletService $walletService, TransactionRepository $transactionRepository)
-    {
+    public function __construct(
+        IWalletService $walletService,
+        TransactionRepository $transactionRepository
+    ) {
         $this->walletService = $walletService;
         $this->transactionRepository = $transactionRepository;
-    }
-
-    protected function calculateFee(int $amount): int
-    {
-        return (int)round(($amount * self::COMPANY_FEE) / 100);
+        $this->payment = new Payment();
     }
 
     protected function createUserTransaction(TransactionDTO $dto): bool
@@ -49,13 +49,12 @@ class TransactionService implements ITransactionService
         return $transaction->save();
     }
 
-    protected function processTransaction(string $from, string $to, Calculator $calculate): bool
+    protected function processTransaction(string $from, string $to, Payment $payment): bool
     {
         try {
-
             DB::beginTransaction();
-            $this->walletService->takeTransaction($from, $calculate);
-            $this->walletService->putTransaction($to, $calculate);
+            $this->walletService->takeTransaction($from, $payment);
+            $this->walletService->putTransaction($to, $payment);
             DB::commit();
 
             return true;
@@ -70,20 +69,21 @@ class TransactionService implements ITransactionService
         return false;
     }
 
-    public function create(int $userId, string $from, string $to, int $amount): TransactionDTO
+    public function create(User $user, string $from, string $to, int $amount): TransactionDTO
     {
+        $userId = $user->id;
+
         if (!$this->walletService->isWalletExist($userId, $from)) {
             throw new ResourceException('Invalid user wallet');
         }
 
-        $fee = 0;
+        $this->payment->setAmount($amount);
 
         if (!$this->walletService->isWalletExist($userId, $to)) {
-            $fee = $this->calculateFee($amount);
+            $this->payment->setFee(Calculator::calculateFee($amount, self::COMPANY_FEE));
         }
 
-        $calculator = new Calculator($amount, $fee);
-        $result = $this->processTransaction($from, $to, $calculator);
+        $result = $this->processTransaction($from, $to, $this->payment);
         $walletId = $this->walletService->getWalletIdByAddress($from, $userId);
         $status = ($result) ? TransactionStatus::value('success') : TransactionStatus::value('fail');
 
@@ -104,8 +104,8 @@ class TransactionService implements ITransactionService
         return $dto;
     }
 
-    public function getUserTransactions(int $userId): Collection
+    public function getUserTransactions(User $user): Collection
     {
-        return $this->transactionRepository->getUserTransactions($userId);
+        return $this->transactionRepository->getUserTransactions($user->id);
     }
 }

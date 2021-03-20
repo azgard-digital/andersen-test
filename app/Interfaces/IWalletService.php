@@ -4,7 +4,8 @@
 namespace App\Interfaces;
 
 use App\DTO\WalletDTO;
-use App\Helpers\Calculator;
+use App\Models\User;
+use App\Services\Payment;
 use Illuminate\Support\Collection;
 
 interface IWalletService
@@ -16,17 +17,17 @@ interface IWalletService
     public function isLimited(int $userId): bool;
 
     /**
-     * @param int $userId
+     * @param User $user
      * @return WalletDTO
      */
-    public function create(int $userId): WalletDTO;
+    public function create(User $user): WalletDTO;
 
     /**
      * @param string $address
      * @param int $userId
      * @return WalletDTO
      */
-    public function getWalletByAddress(string $address, int $userId): WalletDTO;
+    public function getWalletByAddress(string $address, User $user): WalletDTO;
 
     /**
      * @param int $userId
@@ -37,15 +38,15 @@ interface IWalletService
 
     /**
      * @param string $to
-     * @param Calculator $calculate
+     * @param Payment $payment
      */
-    public function putTransaction(string $to, Calculator $calculate): void;
+    public function putTransaction(string $to, Payment $payment): void;
 
     /**
      * @param string $from
-     * @param Calculator $calculate
+     * @param Payment $payment
      */
-    public function takeTransaction(string $from, Calculator $calculate): void;
+    public function takeTransaction(string $from, Payment $payment): void;
 
     /**
      * @param string $address

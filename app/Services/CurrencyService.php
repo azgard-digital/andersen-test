@@ -19,7 +19,7 @@ class CurrencyService
     {
         if ($this->rate->isConvertible()) {
             $calculate = ($balance / Currency::value('btc_unit')) * $this->rate->getUsd();
-            return number_format((float)$calculate, 4, '.', '');
+            return number_format((float) $calculate, 4, '.', '');
         }
 
         return '';
@@ -28,7 +28,7 @@ class CurrencyService
     public function convertToBtc(int $balance): string
     {
         return number_format(
-            (float)($balance / Currency::value('btc_unit')),
+            (float) ($balance / Currency::value('btc_unit')),
             4, '.', ''
         );
     }

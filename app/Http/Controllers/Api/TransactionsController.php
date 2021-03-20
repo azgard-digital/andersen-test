@@ -25,7 +25,7 @@ class TransactionsController extends Controller
     {
         return new TransactionResource(
             $this->transactionService->create(
-                (int)$request->user()->id,
+                $request->user(),
                 $request->json('wallets.from'),
                 $request->json('wallets.to'),
                 (int)$request->get('amount')
@@ -37,7 +37,7 @@ class TransactionsController extends Controller
     {
         return new TransactionsResource(
             $this->transactionService->getUserTransactions(
-                $request->user()->id
+                $request->user()
             )
         );
     }

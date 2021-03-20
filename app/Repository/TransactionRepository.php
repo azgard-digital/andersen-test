@@ -12,14 +12,6 @@ class TransactionRepository
     {
         return Transaction::query()
             ->where('user_id', $userId)
-            ->get([
-                'id',
-                'created_at',
-                'updated_at',
-                'status',
-                'amount',
-                'fee',
-                'details'
-            ]);
+            ->get();
     }
 }

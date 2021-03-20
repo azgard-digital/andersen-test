@@ -26,7 +26,7 @@ final class Rate implements IRate
         $content = @json_decode($this->loadContent(), true);
 
         if ($content && isset($content['bpi']['USD']['rate_float'])) {
-            $this->usdRate = (float)$content['bpi']['USD']['rate_float'];
+            $this->usdRate = (float) $content['bpi']['USD']['rate_float'];
         }
     }
 

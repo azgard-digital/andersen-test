@@ -23,16 +23,14 @@ class WalletsController extends Controller
 
     public function store(Request $request): JsonResource
     {
-        $userId = (int)$request->user()->id;
+        $user = $request->user();
 
-        if ($this->walletService->isLimited($userId)) {
+        if ($this->walletService->isLimited($user->id)) {
             throw new WalletsLimitException('Too many wallets');
         }
 
         return new WalletResource(
-            $this->walletService->create(
-                $userId
-            )
+            $this->walletService->create($user)
         );
     }
 
@@ -41,7 +39,7 @@ class WalletsController extends Controller
         return new WalletResource(
             $this->walletService->getWalletByAddress(
                 $address,
-                $request->user()->id
+                $request->user()
             )
         );
     }

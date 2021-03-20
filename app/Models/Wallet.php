@@ -17,12 +17,10 @@ class Wallet extends Model
 {
     public $timestamps = false;
 
-    /**
-     * @inheritdoc
-     */
     protected $fillable = [
         'address',
         'balance',
         'user_id',
     ];
+    protected $guarded = ['id', 'balance'];
 }

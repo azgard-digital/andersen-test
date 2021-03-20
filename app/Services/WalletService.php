@@ -5,8 +5,8 @@ namespace App\Services;
 
 use App\DTO\WalletDTO;
 use App\Exceptions\ResourceException;
-use App\Helpers\Calculator;
 use App\Interfaces\IWalletService;
+use App\Models\User;
 use App\Models\Wallet;
 use App\Repository\WalletRepository;
 use Illuminate\Support\Collection;
@@ -50,11 +50,11 @@ class WalletService implements IWalletService
         return $wallet->save();
     }
 
-    public function create(int $userId): WalletDTO
+    public function create(User $user): WalletDTO
     {
-        $address = $this->createWalletAddress((string)$userId);
+        $address = $this->createWalletAddress((string) $user->id);
 
-        if (!$this->createUserWallet($userId, $address)) {
+        if (!$this->createUserWallet($user->id, $address)) {
             throw new ResourceException('Wallet has not been created');
         }
 
@@ -65,9 +65,9 @@ class WalletService implements IWalletService
         );
     }
 
-    public function getWalletByAddress(string $address, int $userId): WalletDTO
+    public function getWalletByAddress(string $address, User $user): WalletDTO
     {
-        $wallet = $this->walletRepository->getUserWalletByAddress($address, $userId);
+        $wallet = $this->walletRepository->getUserWalletByAddress($address, $user->id);
 
         if (!$wallet) {
             throw new ResourceException('Wallet has not been found');
@@ -85,14 +85,14 @@ class WalletService implements IWalletService
         return $this->walletRepository->isUserWalletExist($userId, $address);
     }
 
-    public function putTransaction(string $to, Calculator $calculate): void
+    public function putTransaction(string $to, Payment $payment): void
     {
-        $this->walletRepository->putTransaction($to, $calculate);
+        $this->walletRepository->putTransaction($to, $payment);
     }
 
-    public function takeTransaction(string $from, Calculator $calculate): void
+    public function takeTransaction(string $from, Payment $payment): void
     {
-        $this->walletRepository->takeTransaction($from, $calculate);
+        $this->walletRepository->takeTransaction($from, $payment);
     }
 
     public function getWalletIdByAddress(string $address, int $userId): ?int

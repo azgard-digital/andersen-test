@@ -20,7 +20,6 @@ class Handler extends ExceptionHandler
 {
     /**
      * A list of the exception types that are not reported.
-     *
      * @var array
      */
     protected $dontReport = [
@@ -29,7 +28,6 @@ class Handler extends ExceptionHandler
 
     /**
      * A list of the inputs that are never flashed for validation exceptions.
-     *
      * @var array
      */
     protected $dontFlash = [
@@ -39,28 +37,24 @@ class Handler extends ExceptionHandler
 
     /**
      * Array of exception handlers.
-     *
      * @var array
      */
     protected $handlers = [];
 
     /**
      * Generic response format.
-     *
      * @var array
      */
     protected $format;
 
     /**
      * Indicates if we are in debug mode.
-     *
      * @var bool
      */
     protected $debug = false;
 
     /**
      * User defined replacements to merge with defaults.
-     *
      * @var array
      */
     protected $replacements = [];
@@ -68,8 +62,7 @@ class Handler extends ExceptionHandler
 
     /**
      * Create a new exception handler instance.
-     *
-     * @param \Illuminate\Contracts\Container\Container $container
+     * @param  \Illuminate\Contracts\Container\Container  $container
      * @return void
      */
     public function __construct(Container $container)
@@ -82,9 +75,7 @@ class Handler extends ExceptionHandler
 
     /**
      * Report or log an exception.
-     *
-     * @param Throwable $exception
-     *
+     * @param  Throwable  $exception
      * @return void
      */
     public function report(Throwable $exception)
@@ -94,9 +85,7 @@ class Handler extends ExceptionHandler
 
     /**
      * Determine if the exception should be reported.
-     *
-     * @param Throwable $e
-     *
+     * @param  Throwable  $e
      * @return bool
      */
     public function shouldReport(Throwable $e): bool
@@ -106,25 +95,24 @@ class Handler extends ExceptionHandler
 
     /**
      * Render an exception into an HTTP response.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @param Throwable $exception
-     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  Throwable  $exception
      * @return mixed
      * @throws Exception
-     *
      */
     public function render($request, Throwable $exception)
     {
-        return $this->handle($exception);
+        if ($request->expectsJson()) {
+            return $this->handle($exception);
+        }
+
+        return parent::render($request, $exception);
     }
 
 
     /**
      * Register a new exception handler.
-     *
-     * @param callable $callback
-     *
+     * @param  callable  $callback
      * @return void
      */
     public function register(callable $callback)
@@ -136,9 +124,7 @@ class Handler extends ExceptionHandler
 
     /**
      * Handle an exception if it has an existing handler.
-     *
-     * @param Throwable|Exception $exception
-     *
+     * @param  Throwable|Exception  $exception
      * @return Response
      */
     public function handle($exception): Response
@@ -167,12 +153,9 @@ class Handler extends ExceptionHandler
 
     /**
      * Handle a generic error response if there is no handler available.
-     *
-     * @param Throwable $exception
-     *
+     * @param  Throwable  $exception
      * @return Response
      * @throws Throwable
-     *
      */
     protected function genericResponse(Throwable $exception): Response
     {
@@ -193,9 +176,7 @@ class Handler extends ExceptionHandler
 
     /**
      * Get the status code from the exception.
-     *
-     * @param Throwable $exception
-     *
+     * @param  Throwable  $exception
      * @return int
      */
     protected function getStatusCode(Throwable $exception): int
@@ -221,9 +202,7 @@ class Handler extends ExceptionHandler
 
     /**
      * Get the headers from the exception.
-     *
-     * @param Throwable $exception
-     *
+     * @param  Throwable  $exception
      * @return array
      */
     protected function getHeaders(Throwable $exception): array
@@ -233,9 +212,7 @@ class Handler extends ExceptionHandler
 
     /**
      * Prepare the replacements array by gathering the keys and values.
-     *
-     * @param Throwable $exception
-     *
+     * @param  Throwable  $exception
      * @return array
      */
     protected function prepareReplacements(Throwable $exception): array
@@ -288,9 +265,7 @@ class Handler extends ExceptionHandler
 
     /**
      * Set user defined replacements.
-     *
-     * @param array $replacements
-     *
+     * @param  array  $replacements
      * @return void
      */
     public function setReplacements(array $replacements)
@@ -300,9 +275,7 @@ class Handler extends ExceptionHandler
 
     /**
      * Recursively remove any empty replacement values in the response array.
-     *
-     * @param array $input
-     *
+     * @param  array  $input
      * @return array
      */
     protected function recursivelyRemoveEmptyReplacements(array $input): array
@@ -324,7 +297,6 @@ class Handler extends ExceptionHandler
 
     /**
      * Create a new response array with replacement values.
-     *
      * @return array
      */
     protected function newResponseArray(): array
@@ -334,10 +306,8 @@ class Handler extends ExceptionHandler
 
     /**
      * Get the exception status code.
-     *
-     * @param Exception $exception
-     * @param int $defaultStatusCode
-     *
+     * @param  Exception  $exception
+     * @param  int  $defaultStatusCode
      * @return int
      */
     protected function getExceptionStatusCode(Exception $exception, $defaultStatusCode = 500): int
@@ -347,7 +317,6 @@ class Handler extends ExceptionHandler
 
     /**
      * Determines if we are running in debug mode.
-     *
      * @return bool
      */
     protected function runningInDebugMode(): bool
@@ -357,9 +326,7 @@ class Handler extends ExceptionHandler
 
     /**
      * Get the hint for an exception handler.
-     *
-     * @param callable $callback
-     *
+     * @param  callable  $callback
      * @return string
      */
     protected function handlerHint(callable $callback): string
@@ -373,7 +340,6 @@ class Handler extends ExceptionHandler
 
     /**
      * Get the exception handlers.
-     *
      * @return array
      */
     public function getHandlers(): array
@@ -383,9 +349,7 @@ class Handler extends ExceptionHandler
 
     /**
      * Set the error format array.
-     *
-     * @param array $format
-     *
+     * @param  array  $format
      * @return void
      */
     public function setErrorFormat(array $format)
@@ -395,9 +359,7 @@ class Handler extends ExceptionHandler
 
     /**
      * Set the debug mode.
-     *
-     * @param bool $debug
-     *
+     * @param  bool  $debug
      * @return void
      */
     public function setDebug($debug)

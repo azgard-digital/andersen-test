@@ -17,9 +17,6 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Transaction extends Model
 {
-    /**
-     * @inheritdoc
-     */
     protected $fillable = [
         'user_id',
         'wallet_id',
@@ -28,14 +25,10 @@ class Transaction extends Model
         'fee',
         'details'
     ];
-
-    /**
-     * @inheritdoc
-     */
+    protected $guarded = ['id', 'amount'];
     protected $casts = [
         'details' => 'array'
     ];
-
     public function wallet()
     {
         return $this->hasOne(Wallet::class, 'id', 'wallet_id');
